@@ -34,7 +34,7 @@ public class Guard : MonoBehaviour
     private float BaseCatchRange;
 
     // Multiplier for how long it will take a guard to react to noise
-    private float ReactionMultiplier = 1.0f;
+    private float ReactionMultiplier = 5.0f;
 
     // Used to signify that the guard is currently alerted by a noise
     private bool IsAlerted = false;
@@ -45,6 +45,12 @@ public class Guard : MonoBehaviour
     // A cooldown boolean to prevent a guard from immediatly investigating a new noise after finishing another investigation
     private bool AlertCooldown = false;
 
+    //bonus to detection while at stop location
+    public float DetectionRangeBonus = 1.2f;
+
+    //guard speed
+
+
     private IEnumerator CoStop;
     private IEnumerator CoChase;
     private IEnumerator CoInvestigate;
@@ -53,12 +59,12 @@ public class Guard : MonoBehaviour
     private Transform PlayerTransform;
 
     // Reference to the stealth script
-    private Stealth2 ST;
+    public Stealth2 ST;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        ST = gameObject.AddComponent<Stealth2>();
     }
 
     // Update is called once per frame
@@ -138,7 +144,7 @@ public class Guard : MonoBehaviour
     private IEnumerator LongGoalStop()
     {
         yield return new WaitForSeconds(1.0f);
-        DetectionRange = BaseDetectionRange * 1.5f;
+        DetectionRange = BaseDetectionRange * DetectionRangeBonus + (ST.ReturnAlertLevel() / 10);
         yield return new WaitForSeconds(2.0f);
         DetectionRange = BaseDetectionRange;
         Agent.destination = CurrentGoal.position;
@@ -152,7 +158,7 @@ public class Guard : MonoBehaviour
         Agent.destination = transform.position;
         Agent.areaMask = -1;
         CurrentInvestigation = PlayerTransform.position;
-        yield return new WaitForSeconds(1.0f * ReactionMultiplier);
+        yield return new WaitForSeconds(1.0f * (ReactionMultiplier - ST.ReturnAlertLevel()));
         IsInvestigating = true;
         CatchRange = BaseCatchRange * 2.0f;
         DetectionRange = 0;
@@ -179,20 +185,33 @@ public class Guard : MonoBehaviour
         IsAlerted = false;
         IsInvestigating = false;
         yield return new WaitForSeconds(0.5f);
-        DetectionRange = BaseDetectionRange * 1.5f;
+        DetectionRange = BaseDetectionRange * 1.5f + ST.AlertLevel;
         yield return new WaitForSeconds(3.0f);
         DetectionRange = BaseDetectionRange;
         Agent.destination = CurrentGoal.position;
         Debug.Log("Investigate End");
     }
     
-    private IEnumerator Evidence()
+    void Evidence()
     {
-        
-        Debug.Log("i got you now");
+        Debug.Log("Somthing is weird around here");
         ST.AlertIncrease(1);
+        IncreaseSpeed();
+    }
 
-        yield return new WaitForSeconds(0);
+    void MustHaveBeenNothing()
+    {
+        ST.AlertDecay();
+        IncreaseDecrease();
+    }
+
+    void IncreaseSpeed()
+    {
+        Agent.speed += 1;
+    }
+    void IncreaseDecrease()
+    {
+        Agent.speed -= 1;
     }
 
     // Called when instantiating the guard prefab to populate its patrol route arrays

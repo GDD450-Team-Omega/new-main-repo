@@ -5,7 +5,7 @@ using UnityEngine;
 public class Movement : MonoBehaviour
 {
     Rigidbody M_Rigidbody;
-    float M_Speed = 0.5f;
+    public float M_Speed = 5f;
     Animator Animator;
 
     void Start()

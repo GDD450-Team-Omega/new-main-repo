@@ -49,6 +49,11 @@ public class Stealth2 : MonoBehaviour
         return 0;
         //starts a count down of 60sec
     }
+    
+    public int ReturnAlertLevel()
+    {
+        return AlertLevel; 
+    }
 
     IEnumerator Decay()
     {
